@@ -91,9 +91,8 @@ class LoginWindow(QWidget):
         logging.info("Sending login request to %s", f"{BASE_URL}/api/vendor/login")
         try:
             response = requests.post(
-                f"{BASE_URL}/api/vendor/login/",
+                f"{BASE_URL}/api/auth/create-token/",
                 json={"phone": phone, "password": password},
-                timeout=10,
             )
         except Exception as e:
             logging.exception("Network error during login")
@@ -105,8 +104,8 @@ class LoginWindow(QWidget):
             try:
                 data = response.json()
                 logging.info("Login response keys: %s", list(data.keys()))
-                access = data.get("vendor_access")
-                refresh = data.get("vendor_refresh")
+                access = data.get("access")
+                refresh = data.get("refresh")
                 if access:
                     logging.info("vendor_access received (len=%d)", len(access))
             except Exception:

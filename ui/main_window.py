@@ -3,6 +3,7 @@ from PySide6.QtWidgets import (
     QHBoxLayout, QScrollArea, QFrame, QMessageBox
 )
 from services.heartbeat_service import HeartbeatService
+from services.printjob_service import PrintJobService
 from services.api_service import APIService
 from services.printer_service import PrinterService
 import logging
@@ -42,9 +43,23 @@ class MainWindow(QWidget):
 
         self.heartbeat = HeartbeatService()
         self.api = APIService()
+        
+        # Initialize and start the automatic background printing service
+        self.print_job_manager = PrintJobService()
+        self._setup_print_signals()
+        self.print_job_manager.start()
 
         # initial load
         self.refresh_printers()
+
+    def _setup_print_signals(self):
+        """Connect signals from the print service to handle logs or UI updates."""
+        self.print_job_manager.job_printed.connect(
+            lambda job_id: logging.info(f"Background: Successfully printed job {job_id}")
+        )
+        self.print_job_manager.job_failed.connect(
+            lambda job_id, err: logging.error(f"Background: Job {job_id} failed: {err}")
+        )
 
     def refresh_printers(self):
         try:
@@ -115,8 +130,8 @@ class MainWindow(QWidget):
                     return
                 ps = PrinterService()
                 try:
-                    ps.print_text(ip, port, "Hello World\n")
-                    QMessageBox.information(self, "Print", f"Sent 'Hello World' to {name}")
+                    ps.print_text(ip, port, "\n I love you meow\n")
+                    QMessageBox.information(self, "Print", f"Sent 'I love you meow' to {name}")
                     logging.info("Test print sent to %s (%s:%s)", name, ip, port)
                 except Exception as e:
                     logging.exception("Test print failed for %s", name)
@@ -155,6 +170,13 @@ class MainWindow(QWidget):
                 self.heartbeat.timer.stop()
         except Exception:
             logging.exception("Failed to stop heartbeat on logout")
+            
+        # stop printing service
+        try:
+            if hasattr(self, 'print_job_manager'):
+                self.print_job_manager.stop()
+        except Exception:
+            logging.exception("Failed to stop print service on logout")
 
         # show login window and close main window
         try:
