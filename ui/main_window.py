@@ -130,8 +130,8 @@ class MainWindow(QWidget):
                     return
                 ps = PrinterService()
                 try:
-                    ps.print_text(ip, port, "\n I love you meow\n")
-                    QMessageBox.information(self, "Print", f"Sent 'I love you meow' to {name}")
+                    ps.print_text(ip, port, "\n Hello Test\n")
+                    QMessageBox.information(self, "Print", f"Sent 'Hello Test' to {name}")
                     logging.info("Test print sent to %s (%s:%s)", name, ip, port)
                 except Exception as e:
                     logging.exception("Test print failed for %s", name)
